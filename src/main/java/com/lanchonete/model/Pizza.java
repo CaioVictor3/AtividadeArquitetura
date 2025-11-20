@@ -53,7 +53,51 @@ public class Pizza {
         return precoTotal;
     }
 
+    /**
+     * Cria uma cópia (clone) desta pizza para reutilização da configuração
+     * Útil quando o cliente quer pedir a mesma pizza novamente
+     * @return Um novo builder pré-configurado com as mesmas opções
+     */
+    public PizzaBuilder clonar() {
+        PizzaBuilder builder = new PizzaBuilder()
+            .escolherTamanho(this.tamanho)
+            .comTipoMassa(this.tipoMassa)
+            .comQueijoExtra(this.queijoExtra);
+        
+        // Adiciona recheios
+        for (Map.Entry<String, Integer> entry : this.recheios.entrySet()) {
+            int quantidade = entry.getValue();
+            for (int i = 0; i < quantidade; i++) {
+                builder.adicionarRecheio(entry.getKey());
+            }
+        }
+        
+        // Adiciona molhos
+        for (Map.Entry<String, Integer> entry : this.molhos.entrySet()) {
+            int quantidade = entry.getValue();
+            for (int i = 0; i < quantidade; i++) {
+                builder.adicionarMolho(entry.getKey());
+            }
+        }
+        
+        // Adiciona extras (exceto queijo extra que já foi adicionado)
+        for (Map.Entry<String, Integer> entry : this.extras.entrySet()) {
+            if (!entry.getKey().equals("Queijo Extra")) {
+                int quantidade = entry.getValue();
+                for (int i = 0; i < quantidade; i++) {
+                    builder.adicionarExtra(entry.getKey());
+                }
+            }
+        }
+        
+        return builder;
+    }
 
+
+    /**
+     * Builder interno para construção fluente de Pizza
+     * Implementa o padrão Builder (GoF)
+     */
     public static class PizzaBuilder {
         private Pizza pizza;
 
@@ -61,6 +105,11 @@ public class Pizza {
             this.pizza = new Pizza();
         }
 
+        /**
+         * Define o tamanho da pizza (afeta preço base)
+         * @param tamanho Pequena, Media, Grande ou Familia
+         * @return this builder para encadeamento fluente
+         */
         public PizzaBuilder escolherTamanho(String tamanho) {
             pizza.tamanho = tamanho;
             switch (tamanho.toLowerCase()) {
@@ -121,8 +170,13 @@ public class Pizza {
         }
 
 
+        /**
+         * Constrói o objeto Pizza final após validações
+         * @return Pizza configurada e pronta para uso
+         * @throws IllegalStateException se configurações obrigatórias estiverem ausentes ou inválidas
+         */
         public Pizza build() {
-
+            // Validações de campos obrigatórios
             if (pizza.tamanho == null || pizza.tamanho.isEmpty()) {
                 throw new IllegalStateException("Tamanho é obrigatório");
             }

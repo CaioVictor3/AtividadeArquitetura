@@ -58,6 +58,29 @@ String pao = IngredienteFactory.criarPao("1");
 String molho = IngredienteFactory.criarMolho("barbecue"); 
 ```
 
+### 4. Clonagem de Pedidos (Funcionalidade Adicional) ✅
+
+**Métodos:** `Lanche.clonar()`, `Pizza.clonar()`
+
+**Problema Resolvido:**
+- Permite reutilizar configurações de pedidos anteriores
+- Facilita quando o cliente quer pedir o mesmo item novamente
+- Evita reconfiguração manual completa
+
+**Implementação:**
+- Métodos `clonar()` que retornam um novo builder pré-configurado
+- Mantém todas as configurações do pedido original
+- Permite modificações antes de construir o novo pedido
+
+**Exemplo de uso:**
+```java
+Lanche lancheOriginal = builder.build();
+// Cliente quer o mesmo lanche novamente
+Lanche.LancheBuilder builderClonado = lancheOriginal.clonar();
+// Pode modificar se desejar antes de construir
+Lanche novoLanche = builderClonado.build();
+```
+
 ### 3. Singleton (Padrão Adicional) ✅
 
 **Classe:** `GerenciadorPedidos`
@@ -113,7 +136,8 @@ src/main/java/com/lanchonete/
 ### Menu Principal
 1. **Montar Lanche** - Constrói um lanche personalizado usando Builder
 2. **Montar Pizza** - Constrói uma pizza personalizada usando Builder
-3. **Visualizar Pedidos** - Lista todos os pedidos usando Singleton
+3. **Clonar Pedido Anterior** - Clona um lanche ou pizza já pedido (usa método `clonar()`)
+4. **Visualizar Pedidos** - Lista todos os pedidos usando Singleton
 0. **Sair**
 
 ### Características dos Pedidos
@@ -265,7 +289,12 @@ O sistema inclui interface interativa no console para testar todas as funcionali
 2. **Teste Factory Method:** Use os menus que utilizam a factory para criar ingredientes
 3. **Teste Singleton:** Crie vários pedidos e visualize-os - todos estarão na mesma lista
 4. **Teste Validações:** Tente criar um pedido vegetariano com bacon para ver a validação
-5. **Teste Validações:** Tente criar um pedido vegetariano com bacon para ver a validação
+5. **Teste Clonagem (NOVA FUNCIONALIDADE):** 
+   - Faça um pedido de lanche ou pizza
+   - Escolha a opção "3 - Clonar Pedido Anterior"
+   - Selecione o pedido que deseja clonar
+   - Opcionalmente, modifique o pedido clonado (tamanho, ingredientes extras)
+   - O sistema usa o método `clonar()` para criar uma cópia do builder pré-configurado
 
 ## Princípios de Design Aplicados
 

@@ -58,7 +58,53 @@ public class Lanche {
         return precoTotal;
     }
 
+    /**
+     * Cria uma cópia (clone) deste lanche para reutilização da configuração
+     * Útil quando o cliente quer pedir o mesmo lanche novamente
+     * @return Um novo builder pré-configurado com as mesmas opções
+     */
+    public LancheBuilder clonar() {
+        LancheBuilder builder = new LancheBuilder()
+            .escolherTamanho(this.tamanho)
+            .comTipoPao(this.tipoPao)
+            .comRecheio(this.recheio)
+            .comQueijoExtra(this.queijoExtra);
+        
+        // Adiciona ingredientes
+        for (Map.Entry<String, Integer> entry : this.ingredientes.entrySet()) {
+            String ingrediente = entry.getKey();
+            if (!ingrediente.equals("Queijo Extra")) { // Queijo extra já foi adicionado
+                int quantidade = entry.getValue();
+                for (int i = 0; i < quantidade; i++) {
+                    builder.adicionarIngrediente(ingrediente);
+                }
+            }
+        }
+        
+        // Adiciona molhos
+        for (Map.Entry<String, Integer> entry : this.molhos.entrySet()) {
+            int quantidade = entry.getValue();
+            for (int i = 0; i < quantidade; i++) {
+                builder.adicionarMolho(entry.getKey());
+            }
+        }
+        
+        // Adiciona acompanhamentos
+        for (Map.Entry<String, Integer> entry : this.acompanhamentos.entrySet()) {
+            int quantidade = entry.getValue();
+            for (int i = 0; i < quantidade; i++) {
+                builder.adicionarAcompanhamento(entry.getKey());
+            }
+        }
+        
+        return builder;
+    }
 
+
+    /**
+     * Builder interno para construção fluente de Lanche
+     * Implementa o padrão Builder (GoF)
+     */
     public static class LancheBuilder {
         private Lanche lanche;
 
@@ -66,6 +112,11 @@ public class Lanche {
             this.lanche = new Lanche();
         }
 
+        /**
+         * Define o tamanho do lanche (afeta preço base)
+         * @param tamanho Pequeno, Medio ou Grande
+         * @return this builder para encadeamento fluente
+         */
         public LancheBuilder escolherTamanho(String tamanho) {
             lanche.tamanho = tamanho;
             switch (tamanho.toLowerCase()) {
@@ -128,8 +179,13 @@ public class Lanche {
         }
 
 
+        /**
+         * Constrói o objeto Lanche final após validações
+         * @return Lanche configurado e pronto para uso
+         * @throws IllegalStateException se configurações obrigatórias estiverem ausentes
+         */
         public Lanche build() {
-
+            // Validações de campos obrigatórios
             if (lanche.tamanho == null || lanche.tamanho.isEmpty()) {
                 throw new IllegalStateException("Tamanho é obrigatório");
             }

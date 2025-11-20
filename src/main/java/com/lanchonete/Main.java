@@ -23,21 +23,28 @@ public class Main {
             System.out.println("\nEscolha o tipo de pedido:");
             System.out.println("1 - Lanche");
             System.out.println("2 - Pizza");
-            System.out.println("3 - Visualizar Pedidos");
+            System.out.println("3 - Clonar Pedido Anterior");
+            System.out.println("4 - Visualizar Pedidos");
             System.out.println("0 - Sair");
             System.out.print("\nOpção: ");
 
             int opcao = lerOpcaoNumerica();
+            
+            // Validação de opção válida
+            if (opcao < 0 || opcao > 4) {
+                System.out.println("\nOpção inválida! Por favor, escolha uma opção entre 0 e 4.");
+                continue;
+            }
 
             switch (opcao) {
                 case 1 -> montarLanche();
                 case 2 -> montarPizza();
-                case 3 -> visualizarPedidos();
+                case 3 -> clonarPedido();
+                case 4 -> visualizarPedidos();
                 case 0 -> {
                     continuar = false;
                     System.out.println("\nObrigado! Volte sempre!");
                 }
-                default -> System.out.println("\nOpção inválida! Tente novamente.");
             }
         }
 
@@ -86,12 +93,17 @@ public class Main {
         System.out.println("3 - Grande (R$ 25,00)");
         System.out.print("Opção: ");
         int tamanhoOpcao = lerOpcaoNumerica();
+        
+        while (tamanhoOpcao < 1 || tamanhoOpcao > 3) {
+            System.out.println("Opção inválida! Escolha entre 1 e 3.");
+            System.out.print("Opção: ");
+            tamanhoOpcao = lerOpcaoNumerica();
+        }
 
         switch (tamanhoOpcao) {
             case 1 -> builder.escolherTamanho("Pequeno");
             case 2 -> builder.escolherTamanho("Medio");
             case 3 -> builder.escolherTamanho("Grande");
-            default -> builder.escolherTamanho("Medio");
         }
 
         // Pão (obrigatório)
@@ -105,8 +117,17 @@ public class Main {
             System.out.print("Opção: ");
             String paoOpcao = scanner.nextLine().trim();
             if (!paoOpcao.isEmpty()) {
-                tipoPao = IngredienteFactory.criarPao(paoOpcao);
-                builder.comTipoPao(tipoPao);
+                try {
+                    int opcaoPaoNum = Integer.parseInt(paoOpcao);
+                    if (opcaoPaoNum >= 1 && opcaoPaoNum <= 4) {
+                        tipoPao = IngredienteFactory.criarPao(paoOpcao);
+                        builder.comTipoPao(tipoPao);
+                    } else {
+                        System.out.println("Erro: Escolha uma opção entre 1 e 4.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Erro: Digite apenas números de 1 a 4.");
+                }
             } else {
                 System.out.println("Erro: Tipo de pão é obrigatório! Escolha uma opção.");
             }
@@ -123,8 +144,17 @@ public class Main {
             System.out.print("Opção: ");
             String recheioOpcao = scanner.nextLine().trim();
             if (!recheioOpcao.isEmpty()) {
-                recheio = IngredienteFactory.criarRecheio(recheioOpcao);
-                builder.comRecheio(recheio);
+                try {
+                    int opcaoRecheioNum = Integer.parseInt(recheioOpcao);
+                    if (opcaoRecheioNum >= 1 && opcaoRecheioNum <= 4) {
+                        recheio = IngredienteFactory.criarRecheio(recheioOpcao);
+                        builder.comRecheio(recheio);
+                    } else {
+                        System.out.println("Erro: Escolha uma opção entre 1 e 4.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Erro: Digite apenas números de 1 a 4.");
+                }
             } else {
                 System.out.println("Erro: Recheio é obrigatório! Escolha uma opção.");
             }
@@ -232,13 +262,18 @@ public class Main {
         System.out.println("4 - Família (R$ 55,00)");
         System.out.print("Opção: ");
         int tamanhoOpcao = lerOpcaoNumerica();
+        
+        while (tamanhoOpcao < 1 || tamanhoOpcao > 4) {
+            System.out.println("Opção inválida! Escolha entre 1 e 4.");
+            System.out.print("Opção: ");
+            tamanhoOpcao = lerOpcaoNumerica();
+        }
 
         switch (tamanhoOpcao) {
             case 1 -> builder.escolherTamanho("Pequena");
             case 2 -> builder.escolherTamanho("Media");
             case 3 -> builder.escolherTamanho("Grande");
             case 4 -> builder.escolherTamanho("Familia");
-            default -> builder.escolherTamanho("Media");
         }
 
 
@@ -253,8 +288,17 @@ public class Main {
             System.out.print("Opção: ");
             String massaOpcao = scanner.nextLine().trim();
             if (!massaOpcao.isEmpty()) {
-                tipoMassa = IngredienteFactory.criarMassa(massaOpcao);
-                builder.comTipoMassa(tipoMassa);
+                try {
+                    int opcaoMassaNum = Integer.parseInt(massaOpcao);
+                    if (opcaoMassaNum >= 1 && opcaoMassaNum <= 4) {
+                        tipoMassa = IngredienteFactory.criarMassa(massaOpcao);
+                        builder.comTipoMassa(tipoMassa);
+                    } else {
+                        System.out.println("Erro: Escolha uma opção entre 1 e 4.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Erro: Digite apenas números de 1 a 4.");
+                }
             } else {
                 System.out.println("Erro: Tipo de massa é obrigatório! Escolha uma opção.");
             }
@@ -354,6 +398,103 @@ public class Main {
         } catch (IllegalStateException e) {
             System.out.println("\nErro: " + e.getMessage());
         }
+    }
+
+
+    private static void clonarPedido() {
+        System.out.println("\n------ CLONAR PEDIDO ANTERIOR ------");
+        
+        GerenciadorPedidos gerenciador = GerenciadorPedidos.getInstancia();
+        List<Lanche> lanchesPedidos = gerenciador.getLanchesPedidos();
+        List<Pizza> pizzasPedidos = gerenciador.getPizzasPedidos();
+        
+        int totalPedidos = gerenciador.getTotalPedidos();
+        
+        if (totalPedidos == 0) {
+            System.out.println("\nNenhum pedido anterior encontrado.");
+            System.out.println("Faça um pedido primeiro para poder cloná-lo!");
+            System.out.print("\nPressione Enter para voltar...");
+            scanner.nextLine();
+            return;
+        }
+        
+        System.out.println("\nEscolha qual pedido deseja clonar:");
+        System.out.println("\n--- LANCHES DISPONÍVEIS ---");
+        
+        if (lanchesPedidos.isEmpty()) {
+            System.out.println("  (Nenhum lanche pedido)");
+        } else {
+            for (int i = 0; i < lanchesPedidos.size(); i++) {
+                Lanche lanche = lanchesPedidos.get(i);
+                System.out.println((i + 1) + " - Lanche " + lanche.getTamanho() + 
+                                 " (Pão: " + lanche.getTipoPao() + 
+                                 ", Recheio: " + lanche.getRecheio() + 
+                                 ") - R$ " + String.format("%.2f", lanche.getPrecoTotal()));
+            }
+        }
+        
+        System.out.println("\n--- PIZZAS DISPONÍVEIS ---");
+        
+        if (pizzasPedidos.isEmpty()) {
+            System.out.println("  (Nenhuma pizza pedida)");
+        } else {
+            for (int i = 0; i < pizzasPedidos.size(); i++) {
+                Pizza pizza = pizzasPedidos.get(i);
+                String recheios = String.join(", ", pizza.getRecheios().keySet());
+                System.out.println((lanchesPedidos.size() + i + 1) + " - Pizza " + 
+                                 pizza.getTamanho() + 
+                                 " (Massa: " + pizza.getTipoMassa() + 
+                                 ", Recheios: " + recheios + 
+                                 ") - R$ " + String.format("%.2f", pizza.getPrecoTotal()));
+            }
+        }
+        
+        System.out.println("\n0 - Voltar ao menu principal");
+        System.out.print("\nEscolha o número do pedido para clonar: ");
+        
+        int opcao = lerOpcaoNumerica();
+        
+        if (opcao == 0) {
+            return;
+        }
+        
+        // Verifica se é um lanche
+        if (opcao >= 1 && opcao <= lanchesPedidos.size()) {
+            Lanche lancheOriginal = lanchesPedidos.get(opcao - 1);
+            System.out.println("\n✓ Clonando lanche...");
+            
+            Lanche.LancheBuilder builder = lancheOriginal.clonar();
+            
+            try {
+                Lanche novoLanche = builder.build();
+                System.out.println("\n" + novoLanche);
+                System.out.println("✓ Lanche clonado e adicionado ao pedido!");
+            } catch (IllegalStateException e) {
+                System.out.println("\nErro ao clonar: " + e.getMessage());
+            }
+            
+        } else if (opcao > lanchesPedidos.size() && opcao <= totalPedidos) {
+            // É uma pizza
+            int pizzaIndex = opcao - lanchesPedidos.size() - 1;
+            Pizza pizzaOriginal = pizzasPedidos.get(pizzaIndex);
+            System.out.println("\n✓ Clonando pizza...");
+            
+            Pizza.PizzaBuilder builder = pizzaOriginal.clonar();
+            
+            try {
+                Pizza novaPizza = builder.build();
+                System.out.println("\n" + novaPizza);
+                System.out.println("✓ Pizza clonada e adicionada ao pedido!");
+            } catch (IllegalStateException e) {
+                System.out.println("\nErro ao clonar: " + e.getMessage());
+            }
+            
+        } else {
+            System.out.println("\nOpção inválida! Tente novamente.");
+        }
+        
+        System.out.print("\nPressione Enter para voltar...");
+        scanner.nextLine();
     }
 
 
