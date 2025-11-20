@@ -1,25 +1,28 @@
 package com.lanchonete.model;
 
+import com.lanchonete.service.GerenciadorPedidos;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class Lanche {
     private String tamanho;
     private String tipoPao;
     private String recheio;
-    private List<String> ingredientes;
+    private Map<String, Integer> ingredientes; // Nome -> Quantidade
     private boolean queijoExtra;
-    private List<String> molhos;
-    private List<String> acompanhamentos;
+    private Map<String, Integer> molhos; // Nome -> Quantidade
+    private Map<String, Integer> acompanhamentos; // Nome -> Quantidade
     private double precoBase;
     private double precoTotal;
 
-   
     private Lanche() {
-        this.ingredientes = new ArrayList<>();
-        this.molhos = new ArrayList<>();
-        this.acompanhamentos = new ArrayList<>();
+        this.ingredientes = new HashMap<>();
+        this.molhos = new HashMap<>();
+        this.acompanhamentos = new HashMap<>();
     }
 
     // Getters
@@ -35,20 +38,20 @@ public class Lanche {
         return recheio;
     }
 
-    public List<String> getIngredientes() {
-        return new ArrayList<>(ingredientes);
+    public Map<String, Integer> getIngredientes() {
+        return new HashMap<>(ingredientes);
     }
 
     public boolean isQueijoExtra() {
         return queijoExtra;
     }
 
-    public List<String> getMolhos() {
-        return new ArrayList<>(molhos);
+    public Map<String, Integer> getMolhos() {
+        return new HashMap<>(molhos);
     }
 
-    public List<String> getAcompanhamentos() {
-        return new ArrayList<>(acompanhamentos);
+    public Map<String, Integer> getAcompanhamentos() {
+        return new HashMap<>(acompanhamentos);
     }
 
     public double getPrecoTotal() {
@@ -93,7 +96,8 @@ public class Lanche {
 
         public LancheBuilder adicionarIngrediente(String ingrediente) {
             if (ingrediente != null && !ingrediente.trim().isEmpty()) {
-                lanche.ingredientes.add(ingrediente);
+                lanche.ingredientes.put(ingrediente, 
+                    lanche.ingredientes.getOrDefault(ingrediente, 0) + 1);
             }
             return this;
         }
@@ -101,21 +105,24 @@ public class Lanche {
         public LancheBuilder comQueijoExtra(boolean queijoExtra) {
             lanche.queijoExtra = queijoExtra;
             if (queijoExtra) {
-                lanche.ingredientes.add("Queijo Extra");
+                lanche.ingredientes.put("Queijo Extra", 
+                    lanche.ingredientes.getOrDefault("Queijo Extra", 0) + 1);
             }
             return this;
         }
 
         public LancheBuilder adicionarMolho(String molho) {
             if (molho != null && !molho.trim().isEmpty()) {
-                lanche.molhos.add(molho);
+                lanche.molhos.put(molho, 
+                    lanche.molhos.getOrDefault(molho, 0) + 1);
             }
             return this;
         }
 
         public LancheBuilder adicionarAcompanhamento(String acompanhamento) {
             if (acompanhamento != null && !acompanhamento.trim().isEmpty()) {
-                lanche.acompanhamentos.add(acompanhamento);
+                lanche.acompanhamentos.put(acompanhamento, 
+                    lanche.acompanhamentos.getOrDefault(acompanhamento, 0) + 1);
             }
             return this;
         }
@@ -126,15 +133,42 @@ public class Lanche {
             if (lanche.tamanho == null || lanche.tamanho.isEmpty()) {
                 throw new IllegalStateException("Tamanho é obrigatório");
             }
+            if (lanche.tipoPao == null || lanche.tipoPao.isEmpty()) {
+                throw new IllegalStateException("Tipo de pão é obrigatório");
+            }
             if (lanche.recheio == null || lanche.recheio.isEmpty()) {
                 throw new IllegalStateException("Recheio é obrigatório");
             }
 
+            // Validação: Vegetariano não pode ter bacon ou ovo
+            if (lanche.recheio.equalsIgnoreCase("Vegetariano")) {
+                for (String ing : lanche.ingredientes.keySet()) {
+                    if (ing.equalsIgnoreCase("Bacon") || ing.equalsIgnoreCase("Ovo")) {
+                        throw new IllegalStateException("Pedido vegetariano não pode conter " + ing);
+                    }
+                }
+            }
+
             // Calcula preço total
             lanche.precoTotal = lanche.precoBase;
-            lanche.precoTotal += lanche.ingredientes.size() * 2.50; // cada adicional custa R$ 2,50
-            lanche.precoTotal += lanche.molhos.size() * 1.00; // cada molho custa R$ 1,00
-            lanche.precoTotal += lanche.acompanhamentos.size() * 3.00; // cada acompanhamento custa R$ 3,00
+            
+            // Calcula preço dos ingredientes (soma das quantidades)
+            int totalIngredientes = lanche.ingredientes.values().stream()
+                .mapToInt(Integer::intValue).sum();
+            lanche.precoTotal += totalIngredientes * 2.50; // cada adicional custa R$ 2,50
+            
+            // Calcula preço dos molhos (soma das quantidades)
+            int totalMolhos = lanche.molhos.values().stream()
+                .mapToInt(Integer::intValue).sum();
+            lanche.precoTotal += totalMolhos * 1.00; // cada molho custa R$ 1,00
+            
+            // Calcula preço dos acompanhamentos (soma das quantidades)
+            int totalAcompanhamentos = lanche.acompanhamentos.values().stream()
+                .mapToInt(Integer::intValue).sum();
+            lanche.precoTotal += totalAcompanhamentos * 3.00; // cada acompanhamento custa R$ 3,00
+
+            // Adiciona ao gerenciador de pedidos (Singleton)
+            GerenciadorPedidos.getInstancia().adicionarLanche(lanche);
 
             return lanche;
         }
@@ -151,15 +185,48 @@ public class Lanche {
         sb.append("Recheio: ").append(recheio).append("\n");
         
         if (!ingredientes.isEmpty()) {
-            sb.append("Ingredientes: ").append(String.join(", ", ingredientes)).append("\n");
+            sb.append("Ingredientes: ");
+            List<String> ingFormatados = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : ingredientes.entrySet()) {
+                String ing = entry.getKey();
+                int qtd = entry.getValue();
+                if (qtd > 1) {
+                    ingFormatados.add(ing + " (" + qtd + "x)");
+                } else {
+                    ingFormatados.add(ing);
+                }
+            }
+            sb.append(String.join(", ", ingFormatados)).append("\n");
         }
         
         if (!molhos.isEmpty()) {
-            sb.append("Molhos: ").append(String.join(", ", molhos)).append("\n");
+            sb.append("Molhos: ");
+            List<String> molhosFormatados = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : molhos.entrySet()) {
+                String molho = entry.getKey();
+                int qtd = entry.getValue();
+                if (qtd > 1) {
+                    molhosFormatados.add(molho + " (" + qtd + "x)");
+                } else {
+                    molhosFormatados.add(molho);
+                }
+            }
+            sb.append(String.join(", ", molhosFormatados)).append("\n");
         }
         
         if (!acompanhamentos.isEmpty()) {
-            sb.append("Acompanhamentos: ").append(String.join(", ", acompanhamentos)).append("\n");
+            sb.append("Acompanhamentos: ");
+            List<String> acFormatados = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : acompanhamentos.entrySet()) {
+                String ac = entry.getKey();
+                int qtd = entry.getValue();
+                if (qtd > 1) {
+                    acFormatados.add(ac + " (" + qtd + "x)");
+                } else {
+                    acFormatados.add(ac);
+                }
+            }
+            sb.append(String.join(", ", acFormatados)).append("\n");
         }
         
         sb.append("\nPreço Base: R$ ").append(String.format("%.2f", precoBase)).append("\n");

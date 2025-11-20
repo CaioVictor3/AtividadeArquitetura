@@ -1,24 +1,27 @@
 package com.lanchonete.model;
 
+import com.lanchonete.service.GerenciadorPedidos;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class Pizza {
     private String tamanho;
     private String tipoMassa;
-    private List<String> recheios;
+    private Map<String, Integer> recheios; // Nome -> Quantidade
     private boolean queijoExtra;
-    private List<String> molhos;
-    private List<String> extras;
+    private Map<String, Integer> molhos; // Nome -> Quantidade
+    private Map<String, Integer> extras; // Nome -> Quantidade
     private double precoBase;
     private double precoTotal;
 
-   
     private Pizza() {
-        this.recheios = new ArrayList<>();
-        this.molhos = new ArrayList<>();
-        this.extras = new ArrayList<>();
+        this.recheios = new HashMap<>();
+        this.molhos = new HashMap<>();
+        this.extras = new HashMap<>();
     }
 
 
@@ -30,20 +33,20 @@ public class Pizza {
         return tipoMassa;
     }
 
-    public List<String> getRecheios() {
-        return new ArrayList<>(recheios);
+    public Map<String, Integer> getRecheios() {
+        return new HashMap<>(recheios);
     }
 
     public boolean isQueijoExtra() {
         return queijoExtra;
     }
 
-    public List<String> getMolhos() {
-        return new ArrayList<>(molhos);
+    public Map<String, Integer> getMolhos() {
+        return new HashMap<>(molhos);
     }
 
-    public List<String> getExtras() {
-        return new ArrayList<>(extras);
+    public Map<String, Integer> getExtras() {
+        return new HashMap<>(extras);
     }
 
     public double getPrecoTotal() {
@@ -86,7 +89,8 @@ public class Pizza {
 
         public PizzaBuilder adicionarRecheio(String recheio) {
             if (recheio != null && !recheio.trim().isEmpty()) {
-                pizza.recheios.add(recheio);
+                pizza.recheios.put(recheio, 
+                    pizza.recheios.getOrDefault(recheio, 0) + 1);
             }
             return this;
         }
@@ -94,21 +98,24 @@ public class Pizza {
         public PizzaBuilder comQueijoExtra(boolean queijoExtra) {
             pizza.queijoExtra = queijoExtra;
             if (queijoExtra) {
-                pizza.extras.add("Queijo Extra");
+                pizza.extras.put("Queijo Extra", 
+                    pizza.extras.getOrDefault("Queijo Extra", 0) + 1);
             }
             return this;
         }
 
         public PizzaBuilder adicionarMolho(String molho) {
             if (molho != null && !molho.trim().isEmpty()) {
-                pizza.molhos.add(molho);
+                pizza.molhos.put(molho, 
+                    pizza.molhos.getOrDefault(molho, 0) + 1);
             }
             return this;
         }
 
         public PizzaBuilder adicionarExtra(String extra) {
             if (extra != null && !extra.trim().isEmpty()) {
-                pizza.extras.add(extra);
+                pizza.extras.put(extra, 
+                    pizza.extras.getOrDefault(extra, 0) + 1);
             }
             return this;
         }
@@ -119,15 +126,46 @@ public class Pizza {
             if (pizza.tamanho == null || pizza.tamanho.isEmpty()) {
                 throw new IllegalStateException("Tamanho é obrigatório");
             }
+            if (pizza.tipoMassa == null || pizza.tipoMassa.isEmpty()) {
+                throw new IllegalStateException("Tipo de massa é obrigatório");
+            }
             if (pizza.recheios.isEmpty()) {
                 throw new IllegalStateException("Pelo menos um recheio é obrigatório");
             }
 
+            // Validação: Vegetariano não pode ter bacon
+            if (pizza.recheios.keySet().stream().anyMatch(r -> r.equalsIgnoreCase("Vegetariano"))) {
+                for (String extra : pizza.extras.keySet()) {
+                    if (extra.equalsIgnoreCase("Bacon")) {
+                        throw new IllegalStateException("Pizza vegetariana não pode conter Bacon");
+                    }
+                }
+            }
+
+            // Validação: Máximo de 5 tipos diferentes de recheios
+            if (pizza.recheios.size() > 5) {
+                throw new IllegalStateException("Máximo de 5 tipos diferentes de recheios permitidos");
+            }
 
             pizza.precoTotal = pizza.precoBase;
-            pizza.precoTotal += pizza.recheios.size() * 3.00; // cada recheio adicional R$ 3,00
-            pizza.precoTotal += pizza.molhos.size() * 1.50; // cada molho custa 1,50
-            pizza.precoTotal += pizza.extras.size() * 4.00; // cada extra custa 4,00
+            
+            // Calcula preço dos recheios (soma das quantidades)
+            int totalRecheios = pizza.recheios.values().stream()
+                .mapToInt(Integer::intValue).sum();
+            pizza.precoTotal += totalRecheios * 3.00; // cada recheio adicional R$ 3,00
+            
+            // Calcula preço dos molhos (soma das quantidades)
+            int totalMolhos = pizza.molhos.values().stream()
+                .mapToInt(Integer::intValue).sum();
+            pizza.precoTotal += totalMolhos * 1.50; // cada molho custa 1,50
+            
+            // Calcula preço dos extras (soma das quantidades)
+            int totalExtras = pizza.extras.values().stream()
+                .mapToInt(Integer::intValue).sum();
+            pizza.precoTotal += totalExtras * 4.00; // cada extra custa 4,00
+
+            // Adiciona ao gerenciador de pedidos (Singleton)
+            GerenciadorPedidos.getInstancia().adicionarPizza(pizza);
 
             return pizza;
         }
@@ -136,19 +174,55 @@ public class Pizza {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n---------- PEDIDO de PIZZA ----------n");
+        sb.append("\n---------- PEDIDO de PIZZA ----------\n");
         sb.append("Tamanho: ").append(tamanho != null ? tamanho : "Não especificado").append("\n");
         if (tipoMassa != null) {
             sb.append("Tipo de Massa: ").append(tipoMassa).append("\n");
         }
-        sb.append("Recheios: ").append(String.join(", ", recheios)).append("\n");
+        
+        if (!recheios.isEmpty()) {
+            sb.append("Recheios: ");
+            List<String> recheiosFormatados = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : recheios.entrySet()) {
+                String recheio = entry.getKey();
+                int qtd = entry.getValue();
+                if (qtd > 1) {
+                    recheiosFormatados.add(recheio + " (" + qtd + "x)");
+                } else {
+                    recheiosFormatados.add(recheio);
+                }
+            }
+            sb.append(String.join(", ", recheiosFormatados)).append("\n");
+        }
         
         if (!molhos.isEmpty()) {
-            sb.append("Molhos: ").append(String.join(", ", molhos)).append("\n");
+            sb.append("Molhos: ");
+            List<String> molhosFormatados = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : molhos.entrySet()) {
+                String molho = entry.getKey();
+                int qtd = entry.getValue();
+                if (qtd > 1) {
+                    molhosFormatados.add(molho + " (" + qtd + "x)");
+                } else {
+                    molhosFormatados.add(molho);
+                }
+            }
+            sb.append(String.join(", ", molhosFormatados)).append("\n");
         }
         
         if (!extras.isEmpty()) {
-            sb.append("Extras: ").append(String.join(", ", extras)).append("\n");
+            sb.append("Extras: ");
+            List<String> extrasFormatados = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : extras.entrySet()) {
+                String extra = entry.getKey();
+                int qtd = entry.getValue();
+                if (qtd > 1) {
+                    extrasFormatados.add(extra + " (" + qtd + "x)");
+                } else {
+                    extrasFormatados.add(extra);
+                }
+            }
+            sb.append(String.join(", ", extrasFormatados)).append("\n");
         }
         
         sb.append("\nPreço Base: R$ ").append(String.format("%.2f", precoBase)).append("\n");

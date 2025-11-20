@@ -3,7 +3,9 @@ package com.lanchonete;
 import com.lanchonete.factory.IngredienteFactory;
 import com.lanchonete.model.Lanche;
 import com.lanchonete.model.Pizza;
+import com.lanchonete.service.GerenciadorPedidos;
 
+import java.util.List;
 import java.util.Scanner;
 
 
@@ -45,11 +47,28 @@ public class Main {
 
     private static int lerOpcaoNumerica() {
         while (true) {
-            String entrada = scanner.nextLine();
             try {
+                String entrada = scanner.nextLine().trim();
+                if (entrada.isEmpty()) {
+                    System.out.print("Valor inválido! Digite um número: ");
+                    continue;
+                }
                 return Integer.parseInt(entrada);
             } catch (NumberFormatException e) {
                 System.out.print("Valor inválido! Digite um número: ");
+            }
+        }
+    }
+
+    private static boolean lerSimOuNao() {
+        while (true) {
+            String entrada = scanner.nextLine().trim();
+            if (entrada.equalsIgnoreCase("s")) {
+                return true;
+            } else if (entrada.equalsIgnoreCase("n")) {
+                return false;
+            } else {
+                System.out.print("Resposta inválida! Digite apenas 's' para sim ou 'n' para não: ");
             }
         }
     }
@@ -75,63 +94,125 @@ public class Main {
             default -> builder.escolherTamanho("Medio");
         }
 
-        // Pão
-        System.out.println("\nEscolha o tipo de pão:");
-        System.out.println("1 - Australiano");
-        System.out.println("2 - Integral");
-        System.out.println("3 - Brioche");
-        System.out.println("4 - Italiano");
-        System.out.print("Opção: ");
-        String paoOpcao = scanner.nextLine();
-        builder.comTipoPao(IngredienteFactory.criarPao(paoOpcao));
+        // Pão (obrigatório)
+        String tipoPao = null;
+        while (tipoPao == null) {
+            System.out.println("\nEscolha o tipo de pão (OBRIGATÓRIO):");
+            System.out.println("1 - Australiano");
+            System.out.println("2 - Integral");
+            System.out.println("3 - Brioche");
+            System.out.println("4 - Italiano");
+            System.out.print("Opção: ");
+            String paoOpcao = scanner.nextLine().trim();
+            if (!paoOpcao.isEmpty()) {
+                tipoPao = IngredienteFactory.criarPao(paoOpcao);
+                builder.comTipoPao(tipoPao);
+            } else {
+                System.out.println("Erro: Tipo de pão é obrigatório! Escolha uma opção.");
+            }
+        }
 
-        // Recheio
-        System.out.println("\nEscolha o recheio:");
-        System.out.println("1 - Frango");
-        System.out.println("2 - Carne");
-        System.out.println("3 - Calabresa");
-        System.out.println("4 - Vegetariano");
-        System.out.print("Opção: ");
-        String recheioOpcao = scanner.nextLine();
-        builder.comRecheio(IngredienteFactory.criarRecheio(recheioOpcao));
+        // Recheio (obrigatório)
+        String recheio = null;
+        while (recheio == null) {
+            System.out.println("\nEscolha o recheio (OBRIGATÓRIO):");
+            System.out.println("1 - Frango");
+            System.out.println("2 - Carne");
+            System.out.println("3 - Calabresa");
+            System.out.println("4 - Vegetariano");
+            System.out.print("Opção: ");
+            String recheioOpcao = scanner.nextLine().trim();
+            if (!recheioOpcao.isEmpty()) {
+                recheio = IngredienteFactory.criarRecheio(recheioOpcao);
+                builder.comRecheio(recheio);
+            } else {
+                System.out.println("Erro: Recheio é obrigatório! Escolha uma opção.");
+            }
+        }
 
         // Queijo extra
         System.out.print("\nDeseja queijo extra? (s/n): ");
-        builder.comQueijoExtra(scanner.nextLine().equalsIgnoreCase("s"));
+        builder.comQueijoExtra(lerSimOuNao());
 
         // Ingredientes adicionais
-        System.out.println("\nIngredientes adicionais (digite 'fim' para encerrar):");
-        System.out.println("Opções: Alface, Tomate, Cebola, Picles, Bacon, Ovo");
+        String[] ingredientesDisponiveis = {"Alface", "Tomate", "Cebola", "Picles", "Bacon", "Ovo"};
+        System.out.println("\nIngredientes adicionais (digite o número ou 'fim' para encerrar):");
+        for (int i = 0; i < ingredientesDisponiveis.length; i++) {
+            System.out.println((i + 1) + " - " + ingredientesDisponiveis[i]);
+        }
 
         while (true) {
             System.out.print("Ingrediente: ");
-            String ing = scanner.nextLine();
-            if (ing.equalsIgnoreCase("fim")) break;
-            builder.adicionarIngrediente(ing);
+            String entrada = scanner.nextLine().trim();
+            if (entrada.equalsIgnoreCase("fim")) break;
+            
+            try {
+                int numIng = Integer.parseInt(entrada);
+                if (numIng >= 1 && numIng <= ingredientesDisponiveis.length) {
+                    builder.adicionarIngrediente(ingredientesDisponiveis[numIng - 1]);
+                    System.out.println("✓ " + ingredientesDisponiveis[numIng - 1] + " adicionado!");
+                } else {
+                    System.out.println("Erro: Número inválido! Escolha um número entre 1 e " + ingredientesDisponiveis.length);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Erro: Digite um número válido ou 'fim' para encerrar");
+            }
         }
 
         // Molhos
-        System.out.print("\nDeseja adicionar molhos? (s/n): ");
-        if (scanner.nextLine().equalsIgnoreCase("s")) {
-            System.out.println("Opções: 1-Barbecue, 2-Mostarda, 3-Maionese, 4-Picante");
+        String[] molhosDisponiveis = {"Barbecue", "Mostarda", "Maionese", "Picante"};
+        System.out.println("\nMolhos (digite o número ou 'fim' para encerrar):");
+        for (int i = 0; i < molhosDisponiveis.length; i++) {
+            System.out.println((i + 1) + " - " + molhosDisponiveis[i]);
+        }
+        
+        while (true) {
             System.out.print("Molho: ");
-            builder.adicionarMolho(IngredienteFactory.criarMolho(scanner.nextLine()));
+            String entrada = scanner.nextLine().trim();
+            if (entrada.equalsIgnoreCase("fim")) break;
+            
+            try {
+                int numMolho = Integer.parseInt(entrada);
+                if (numMolho >= 1 && numMolho <= molhosDisponiveis.length) {
+                    builder.adicionarMolho(molhosDisponiveis[numMolho - 1]);
+                    System.out.println("✓ " + molhosDisponiveis[numMolho - 1] + " adicionado!");
+                } else {
+                    System.out.println("Erro: Número inválido! Escolha um número entre 1 e " + molhosDisponiveis.length);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Erro: Digite um número válido ou 'fim' para encerrar");
+            }
         }
 
         // Acompanhamentos
-        System.out.println("\nAcompanhamentos (digite 'fim' para encerrar):");
-        System.out.println("Opções: Batata Frita, Anéis de Cebola, Nuggets");
+        String[] acompanhamentosDisponiveis = {"Batata Frita", "Anéis de Cebola", "Nuggets"};
+        System.out.println("\nAcompanhamentos (digite o número ou 'fim' para encerrar):");
+        for (int i = 0; i < acompanhamentosDisponiveis.length; i++) {
+            System.out.println((i + 1) + " - " + acompanhamentosDisponiveis[i]);
+        }
 
         while (true) {
             System.out.print("Acompanhamento: ");
-            String ac = scanner.nextLine();
-            if (ac.equalsIgnoreCase("fim")) break;
-            builder.adicionarAcompanhamento(ac);
+            String entrada = scanner.nextLine().trim();
+            if (entrada.equalsIgnoreCase("fim")) break;
+            
+            try {
+                int numAc = Integer.parseInt(entrada);
+                if (numAc >= 1 && numAc <= acompanhamentosDisponiveis.length) {
+                    builder.adicionarAcompanhamento(acompanhamentosDisponiveis[numAc - 1]);
+                    System.out.println("✓ " + acompanhamentosDisponiveis[numAc - 1] + " adicionado!");
+                } else {
+                    System.out.println("Erro: Número inválido! Escolha um número entre 1 e " + acompanhamentosDisponiveis.length);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Erro: Digite um número válido ou 'fim' para encerrar");
+            }
         }
 
         try {
             Lanche lanche = builder.build();
             System.out.println("\n" + lanche);
+            System.out.println("✓ Lanche adicionado ao pedido!");
         } catch (IllegalStateException e) {
             System.out.println("\nErro: " + e.getMessage());
         }
@@ -161,55 +242,115 @@ public class Main {
         }
 
 
-        System.out.println("\nEscolha o tipo de massa:");
-        System.out.println("1 - Fina");
-        System.out.println("2 - Tradicional");
-        System.out.println("3 - Pan");
-        System.out.println("4 - Integral");
-        System.out.print("Opção: ");
-        builder.comTipoMassa(IngredienteFactory.criarMassa(scanner.nextLine()));
+        // Tipo de massa (obrigatório)
+        String tipoMassa = null;
+        while (tipoMassa == null) {
+            System.out.println("\nEscolha o tipo de massa (OBRIGATÓRIO):");
+            System.out.println("1 - Fina");
+            System.out.println("2 - Tradicional");
+            System.out.println("3 - Pan");
+            System.out.println("4 - Integral");
+            System.out.print("Opção: ");
+            String massaOpcao = scanner.nextLine().trim();
+            if (!massaOpcao.isEmpty()) {
+                tipoMassa = IngredienteFactory.criarMassa(massaOpcao);
+                builder.comTipoMassa(tipoMassa);
+            } else {
+                System.out.println("Erro: Tipo de massa é obrigatório! Escolha uma opção.");
+            }
+        }
 
 
-        System.out.println("\nEscolha os recheios (digite 'fim' para encerrar):");
-        System.out.println("Opções: 1-Frango, 2-Carne, 3-Calabresa, 4-Vegetariano");
-        System.out.println("Ou digite o nome direto: Pepperoni, Presunto, etc.");
+        // Recheios (obrigatório - pelo menos um)
+        String[] recheiosDisponiveis = {"Frango", "Carne", "Calabresa", "Vegetariano", "Pepperoni", "Presunto", "Queijo"};
+        boolean temRecheio = false;
+        System.out.println("\nEscolha os recheios (OBRIGATÓRIO - pelo menos um, digite 'fim' para encerrar):");
+        for (int i = 0; i < recheiosDisponiveis.length; i++) {
+            System.out.println((i + 1) + " - " + recheiosDisponiveis[i]);
+        }
 
         while (true) {
             System.out.print("Recheio: ");
-            String r = scanner.nextLine();
-            if (r.equalsIgnoreCase("fim")) break;
-
-            if (r.matches("\\d"))
-                builder.adicionarRecheio(IngredienteFactory.criarRecheio(r));
-            else
-                builder.adicionarRecheio(r);
+            String entrada = scanner.nextLine().trim();
+            if (entrada.equalsIgnoreCase("fim")) {
+                if (!temRecheio) {
+                    System.out.println("Erro: É obrigatório escolher pelo menos um recheio!");
+                    continue;
+                }
+                break;
+            }
+            
+            try {
+                int numRecheio = Integer.parseInt(entrada);
+                if (numRecheio >= 1 && numRecheio <= recheiosDisponiveis.length) {
+                    builder.adicionarRecheio(recheiosDisponiveis[numRecheio - 1]);
+                    temRecheio = true;
+                    System.out.println("✓ " + recheiosDisponiveis[numRecheio - 1] + " adicionado!");
+                } else {
+                    System.out.println("Erro: Número inválido! Escolha um número entre 1 e " + recheiosDisponiveis.length);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Erro: Digite um número válido ou 'fim' para encerrar");
+            }
         }
 
 
         System.out.print("\nDeseja queijo extra? (s/n): ");
-        builder.comQueijoExtra(scanner.nextLine().equalsIgnoreCase("s"));
+        builder.comQueijoExtra(lerSimOuNao());
 
- 
-        System.out.print("\nDeseja adicionar molhos? (s/n): ");
-        if (scanner.nextLine().equalsIgnoreCase("s")) {
-            System.out.println("Opções: 1-Barbecue, 2-Mostarda, 3-Maionese, 4-Picante");
+        String[] molhosDisponiveisPizza = {"Barbecue", "Mostarda", "Maionese", "Picante"};
+        System.out.println("\nMolhos (digite o número ou 'fim' para encerrar):");
+        for (int i = 0; i < molhosDisponiveisPizza.length; i++) {
+            System.out.println((i + 1) + " - " + molhosDisponiveisPizza[i]);
+        }
+        
+        while (true) {
             System.out.print("Molho: ");
-            builder.adicionarMolho(IngredienteFactory.criarMolho(scanner.nextLine()));
+            String entrada = scanner.nextLine().trim();
+            if (entrada.equalsIgnoreCase("fim")) break;
+            
+            try {
+                int numMolho = Integer.parseInt(entrada);
+                if (numMolho >= 1 && numMolho <= molhosDisponiveisPizza.length) {
+                    builder.adicionarMolho(molhosDisponiveisPizza[numMolho - 1]);
+                    System.out.println("✓ " + molhosDisponiveisPizza[numMolho - 1] + " adicionado!");
+                } else {
+                    System.out.println("Erro: Número inválido! Escolha um número entre 1 e " + molhosDisponiveisPizza.length);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Erro: Digite um número válido ou 'fim' para encerrar");
+            }
         }
 
 
-        System.out.println("\nExtras (digite 'fim' para encerrar):");
-        System.out.println("Opções: Bacon, Azeitona, Champignon, Pimentão");
+        String[] extrasDisponiveis = {"Bacon", "Azeitona", "Champignon", "Pimentão"};
+        System.out.println("\nExtras (digite o número ou 'fim' para encerrar):");
+        for (int i = 0; i < extrasDisponiveis.length; i++) {
+            System.out.println((i + 1) + " - " + extrasDisponiveis[i]);
+        }
+        
         while (true) {
             System.out.print("Extra: ");
-            String ex = scanner.nextLine();
-            if (ex.equalsIgnoreCase("fim")) break;
-            builder.adicionarExtra(ex);
+            String entrada = scanner.nextLine().trim();
+            if (entrada.equalsIgnoreCase("fim")) break;
+            
+            try {
+                int numExtra = Integer.parseInt(entrada);
+                if (numExtra >= 1 && numExtra <= extrasDisponiveis.length) {
+                    builder.adicionarExtra(extrasDisponiveis[numExtra - 1]);
+                    System.out.println("✓ " + extrasDisponiveis[numExtra - 1] + " adicionado!");
+                } else {
+                    System.out.println("Erro: Número inválido! Escolha um número entre 1 e " + extrasDisponiveis.length);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Erro: Digite um número válido ou 'fim' para encerrar");
+            }
         }
 
         try {
             Pizza pizza = builder.build();
             System.out.println("\n" + pizza);
+            System.out.println("✓ Pizza adicionada ao pedido!");
         } catch (IllegalStateException e) {
             System.out.println("\nErro: " + e.getMessage());
         }
@@ -218,13 +359,62 @@ public class Main {
 
     private static void visualizarPedidos() {
         System.out.println("\n------ VISUALIZAR PEDIDOS ------");
-
-        while (true) {
-            System.out.print("Os pedidos totais serão exibidos aqui. Digite 'fim' para voltar: ");
-            String entrada = scanner.nextLine();
-
-            if (entrada.equalsIgnoreCase("fim"))
-                break;
+        
+        GerenciadorPedidos gerenciador = GerenciadorPedidos.getInstancia();
+        List<Lanche> lanchesPedidos = gerenciador.getLanchesPedidos();
+        List<Pizza> pizzasPedidos = gerenciador.getPizzasPedidos();
+        
+        int totalPedidos = gerenciador.getTotalPedidos();
+        
+        if (totalPedidos == 0) {
+            System.out.println("\nNenhum pedido realizado ainda.");
+            System.out.print("\nPressione Enter para voltar...");
+            scanner.nextLine();
+            return;
         }
+        
+        double totalVendas = gerenciador.getTotalVendas();
+        
+        System.out.println("\n═══════════════════════════════════════");
+        System.out.println("RESUMO DE PEDIDOS");
+        System.out.println("═══════════════════════════════════════");
+        System.out.println("Total de pedidos: " + totalPedidos);
+        System.out.println("  • Lanches: " + lanchesPedidos.size());
+        System.out.println("  • Pizzas: " + pizzasPedidos.size());
+        
+        if (!lanchesPedidos.isEmpty()) {
+            System.out.println("\n╔═══════════════════════════════════════╗");
+            System.out.println("║           LISTA DE LANCHES            ║");
+            System.out.println("╚═══════════════════════════════════════╝");
+            int contador = 1;
+            for (Lanche lanche : lanchesPedidos) {
+                System.out.println("\n┌─ Lanche #" + contador++ + " ─────────────────────────────┐");
+                System.out.print(lanche);
+                System.out.println("└───────────────────────────────────────────┘");
+            }
+        }
+        
+        if (!pizzasPedidos.isEmpty()) {
+            System.out.println("\n╔═══════════════════════════════════════╗");
+            System.out.println("║           LISTA DE PIZZAS             ║");
+            System.out.println("╚═══════════════════════════════════════╝");
+            int contador = 1;
+            for (Pizza pizza : pizzasPedidos) {
+                System.out.println("\n┌─ Pizza #" + contador++ + " ──────────────────────────────┐");
+                System.out.print(pizza);
+                System.out.println("└───────────────────────────────────────────┘");
+            }
+        }
+        
+        if (totalPedidos > 1) {
+            System.out.println("\n═══════════════════════════════════════");
+            System.out.println("         TOTAL GERAL DOS PEDIDOS        ");
+            System.out.println("VALOR TOTAL: R$ " + String.format("%.2f", totalVendas));
+            System.out.println("═══════════════════════════════════════");
+        }
+        
+        System.out.println("Fim da listagem de pedidos");
+        System.out.print("\nPressione Enter para voltar...");
+        scanner.nextLine();
     }
 }
