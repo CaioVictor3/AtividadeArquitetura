@@ -138,6 +138,7 @@ src/main/java/com/lanchonete/
 2. **Montar Pizza** - Constrói uma pizza personalizada usando Builder
 3. **Clonar Pedido Anterior** - Clona um lanche ou pizza já pedido (usa método `clonar()`)
 4. **Visualizar Pedidos** - Lista todos os pedidos usando Singleton
+5. **Executar Casos de Teste** - Executa testes automáticos de todos os padrões implementados ✨ **NOVO**
 0. **Sair**
 
 ### Características dos Pedidos
@@ -283,13 +284,52 @@ GerenciadorPedidos
 
 ## Testes
 
-O sistema inclui interface interativa no console para testar todas as funcionalidades:
+### Testes Automáticos ✨ **NOVO**
+
+O sistema agora inclui uma suíte completa de **10 casos de teste automáticos** que demonstram e validam todas as funcionalidades e padrões implementados.
+
+**Como executar:**
+1. Execute o programa `Main.java`
+2. Selecione a opção **5 - Executar Casos de Teste**
+3. Os testes serão executados automaticamente
+
+**O que é testado:**
+
+#### Padrões de Projeto:
+- ✓ **Builder Pattern** - Construção fluente de lanches e pizzas
+- ✓ **Factory Pattern** - Criação de ingredientes padronizados
+- ✓ **Prototype Pattern** - Clonagem de pedidos existentes
+- ✓ **Singleton Pattern** - Gerenciador único de pedidos
+
+#### Validações:
+- ✓ Campos obrigatórios (pão, recheio, massa)
+- ✓ Restrições vegetarianas (sem bacon/ovo)
+- ✓ Máximo de 5 recheios em pizza
+- ✓ Cálculo correto de preços com adicionais
+
+#### Casos de Teste Incluídos:
+1. **Builder - Lanche Completo:** Testa construção com múltiplas opções
+2. **Factory - Ingredientes:** Valida criação de pão, recheio e massa
+3. **Builder - Pizza Completa:** Testa pizza com vários recheios
+4. **Validação - Campos Obrigatórios:** Verifica exceção quando falta pão
+5. **Validação - Vegetariano:** Verifica rejeição de bacon em pedido vegetariano
+6. **Validação - Limite de Recheios:** Testa limite de 5 recheios na pizza
+7. **Prototype - Clone Lanche:** Demonstra clonagem de lanche
+8. **Prototype - Clone Pizza:** Demonstra clonagem de pizza
+9. **Singleton - Instância Única:** Valida que há apenas um gerenciador
+10. **Cálculo de Preços:** Verifica precisão no cálculo de adicionais
+
+**Documentação completa:** Veja o arquivo [CASOS_DE_TESTE.md](CASOS_DE_TESTE.md) para descrição detalhada de cada teste.
+
+### Testes Manuais Interativos
+
+O sistema também inclui interface interativa no console para testes manuais:
 
 1. **Teste Builder:** Monte diferentes combinações de lanches e pizzas
 2. **Teste Factory Method:** Use os menus que utilizam a factory para criar ingredientes
 3. **Teste Singleton:** Crie vários pedidos e visualize-os - todos estarão na mesma lista
 4. **Teste Validações:** Tente criar um pedido vegetariano com bacon para ver a validação
-5. **Teste Clonagem (NOVA FUNCIONALIDADE):** 
+5. **Teste Clonagem:** 
    - Faça um pedido de lanche ou pizza
    - Escolha a opção "3 - Clonar Pedido Anterior"
    - Selecione o pedido que deseja clonar

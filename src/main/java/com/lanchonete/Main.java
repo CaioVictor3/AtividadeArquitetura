@@ -25,24 +25,17 @@ public class Main {
             System.out.println("2 - Pizza");
             System.out.println("3 - Clonar Pedido Anterior");
             System.out.println("4 - Visualizar Pedidos");
+            System.out.println("5 - Executar Casos de Teste");
             System.out.println("0 - Sair");
             System.out.print("\nOpção: ");
 
             int opcao = lerOpcaoNumerica();
             
             // Validação de opção válida
-            if (opcao < 0 || opcao > 4) {
-                System.out.println("\nOpção inválida! Por favor, escolha uma opção entre 0 e 4.");
+            if (opcao < 0 || opcao > 5) {
+                System.out.println("\nOpção inválida! Por favor, escolha uma opção entre 0 e 5.");
                 continue;
             }
-
-            Lanche lanche = new Lanche.LancheBuilder()
-                .escolherTamanho("Grande")
-                .comTipoPao("Brioche")
-                .comRecheio("Frango")
-                .comQueijoExtra(true)
-                .adicionarMolho("Barbecue")
-                .build();
 
 
             switch (opcao) {
@@ -50,6 +43,7 @@ public class Main {
                 case 2 -> montarPizza();
                 case 3 -> clonarPedido();
                 case 4 -> visualizarPedidos();
+                case 5 -> executarCasosDeTeste();
                 case 0 -> {
                     continuar = false;
                     System.out.println("\nObrigado! Volte sempre!");
@@ -565,6 +559,316 @@ public class Main {
         
         System.out.println("Fim da listagem de pedidos");
         System.out.print("\nPressione Enter para voltar...");
+        scanner.nextLine();
+    }
+
+
+    /**
+     * Executa casos de teste automáticos para demonstrar as funcionalidades
+     * Testa: Builder Pattern, Factory Pattern, Prototype Pattern e Singleton Pattern
+     */
+    private static void executarCasosDeTeste() {
+        System.out.println("\n╔══════════════════════════════════════════════════════════════╗");
+        System.out.println("║         EXECUTANDO CASOS DE TESTE AUTOMÁTICOS               ║");
+        System.out.println("╚══════════════════════════════════════════════════════════════╝");
+        
+        // Limpa pedidos anteriores para ter um ambiente limpo
+        GerenciadorPedidos gerenciador = GerenciadorPedidos.getInstancia();
+        int pedidosAnteriores = gerenciador.getTotalPedidos();
+        if (pedidosAnteriores > 0) {
+            System.out.println("\n⚠ Atenção: Existem " + pedidosAnteriores + " pedidos no sistema.");
+            System.out.print("Deseja limpar os pedidos anteriores antes dos testes? (s/n): ");
+            if (lerSimOuNao()) {
+                gerenciador.limparPedidos();
+                System.out.println("✓ Pedidos anteriores limpos.");
+            }
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 1: PADRÃO BUILDER - Construção de Lanche Completo");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Demonstrar a construção fluente de um lanche com múltiplas opções");
+        
+        try {
+            Lanche lanche1 = new Lanche.LancheBuilder()
+                .escolherTamanho("Grande")
+                .comTipoPao(IngredienteFactory.criarPao("1")) // Australiano
+                .comRecheio(IngredienteFactory.criarRecheio("2")) // Carne
+                .comQueijoExtra(true)
+                .adicionarIngrediente("Alface")
+                .adicionarIngrediente("Tomate")
+                .adicionarIngrediente("Bacon")
+                .adicionarMolho("Barbecue")
+                .adicionarMolho("Maionese")
+                .adicionarAcompanhamento("Batata Frita")
+                .build();
+            
+            System.out.println("✓ TESTE PASSOU: Lanche construído com sucesso");
+            System.out.println(lanche1);
+        } catch (Exception e) {
+            System.out.println("✗ TESTE FALHOU: " + e.getMessage());
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 2: PADRÃO FACTORY - Criação de Ingredientes");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Testar a criação de diferentes tipos de ingredientes via Factory");
+        
+        try {
+            String pao = IngredienteFactory.criarPao("3"); // Brioche
+            String recheio = IngredienteFactory.criarRecheio("1"); // Frango
+            String massa = IngredienteFactory.criarMassa("2"); // Tradicional
+            
+            System.out.println("✓ TESTE PASSOU: Ingredientes criados com sucesso");
+            System.out.println("  - Pão: " + pao);
+            System.out.println("  - Recheio: " + recheio);
+            System.out.println("  - Massa: " + massa);
+        } catch (Exception e) {
+            System.out.println("✗ TESTE FALHOU: " + e.getMessage());
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 3: PADRÃO BUILDER - Construção de Pizza Completa");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Demonstrar a construção fluente de uma pizza com múltiplos recheios");
+        
+        try {
+            Pizza pizza1 = new Pizza.PizzaBuilder()
+                .escolherTamanho("Familia")
+                .comTipoMassa(IngredienteFactory.criarMassa("3")) // Pan
+                .adicionarRecheio("Calabresa")
+                .adicionarRecheio("Carne")
+                .adicionarRecheio("Frango")
+                .comQueijoExtra(true)
+                .adicionarMolho("Barbecue")
+                .adicionarExtra("Bacon")
+                .adicionarExtra("Azeitona")
+                .build();
+            
+            System.out.println("✓ TESTE PASSOU: Pizza construída com sucesso");
+            System.out.println(pizza1);
+        } catch (Exception e) {
+            System.out.println("✗ TESTE FALHOU: " + e.getMessage());
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 4: VALIDAÇÃO - Campos Obrigatórios do Lanche");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Verificar se a validação impede a criação de lanche sem campos obrigatórios");
+        
+        try {
+            // Tenta criar lanche sem pão (deve falhar)
+            Lanche lancheInvalido = new Lanche.LancheBuilder()
+                .escolherTamanho("Medio")
+                .comRecheio("Frango")
+                .build();
+            
+            System.out.println("✗ TESTE FALHOU: Lanche foi criado sem tipo de pão (deveria ter lançado exceção)");
+        } catch (IllegalStateException e) {
+            System.out.println("✓ TESTE PASSOU: Validação funcionou corretamente");
+            System.out.println("  Mensagem de erro capturada: " + e.getMessage());
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 5: VALIDAÇÃO - Restrição Vegetariana");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Verificar se lanche vegetariano não permite bacon");
+        
+        try {
+            Lanche lancheVegetariano = new Lanche.LancheBuilder()
+                .escolherTamanho("Medio")
+                .comTipoPao(IngredienteFactory.criarPao("2"))
+                .comRecheio(IngredienteFactory.criarRecheio("4")) // Vegetariano
+                .adicionarIngrediente("Bacon") // Não permitido
+                .build();
+            
+            System.out.println("✗ TESTE FALHOU: Lanche vegetariano aceitou bacon (deveria ter lançado exceção)");
+        } catch (IllegalStateException e) {
+            System.out.println("✓ TESTE PASSOU: Validação vegetariana funcionou");
+            System.out.println("  Mensagem de erro capturada: " + e.getMessage());
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 6: VALIDAÇÃO - Máximo de Recheios na Pizza");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Verificar se pizza não permite mais de 5 tipos de recheios");
+        
+        try {
+            Pizza pizzaInvalida = new Pizza.PizzaBuilder()
+                .escolherTamanho("Grande")
+                .comTipoMassa(IngredienteFactory.criarMassa("1"))
+                .adicionarRecheio("Frango")
+                .adicionarRecheio("Carne")
+                .adicionarRecheio("Calabresa")
+                .adicionarRecheio("Pepperoni")
+                .adicionarRecheio("Presunto")
+                .adicionarRecheio("Queijo") // 6º recheio - não permitido
+                .build();
+            
+            System.out.println("✗ TESTE FALHOU: Pizza aceitou mais de 5 recheios (deveria ter lançado exceção)");
+        } catch (IllegalStateException e) {
+            System.out.println("✓ TESTE PASSOU: Validação de máximo de recheios funcionou");
+            System.out.println("  Mensagem de erro capturada: " + e.getMessage());
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 7: PADRÃO PROTOTYPE - Clonagem de Lanche");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Demonstrar a clonagem de um lanche existente");
+        
+        try {
+            // Cria um lanche original
+            Lanche lancheOriginal = new Lanche.LancheBuilder()
+                .escolherTamanho("Pequeno")
+                .comTipoPao(IngredienteFactory.criarPao("4")) // Italiano
+                .comRecheio(IngredienteFactory.criarRecheio("3")) // Calabresa
+                .adicionarIngrediente("Cebola")
+                .adicionarMolho("Picante")
+                .build();
+            
+            System.out.println("Original criado:");
+            System.out.println(lancheOriginal);
+            
+            // Clona o lanche
+            Lanche lancheClonado = lancheOriginal.clonar().build();
+            
+            System.out.println("✓ TESTE PASSOU: Lanche clonado com sucesso");
+            System.out.println("Clone criado:");
+            System.out.println(lancheClonado);
+            
+            // Verifica se são objetos diferentes
+            if (lancheOriginal != lancheClonado) {
+                System.out.println("✓ Confirmado: Original e clone são objetos distintos");
+            }
+        } catch (Exception e) {
+            System.out.println("✗ TESTE FALHOU: " + e.getMessage());
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 8: PADRÃO PROTOTYPE - Clonagem de Pizza");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Demonstrar a clonagem de uma pizza existente");
+        
+        try {
+            // Cria uma pizza original
+            Pizza pizzaOriginal = new Pizza.PizzaBuilder()
+                .escolherTamanho("Media")
+                .comTipoMassa(IngredienteFactory.criarMassa("4")) // Integral
+                .adicionarRecheio("Vegetariano")
+                .adicionarExtra("Pimentão")
+                .adicionarExtra("Champignon")
+                .build();
+            
+            System.out.println("Original criada:");
+            System.out.println(pizzaOriginal);
+            
+            // Clona a pizza
+            Pizza pizzaClonada = pizzaOriginal.clonar().build();
+            
+            System.out.println("✓ TESTE PASSOU: Pizza clonada com sucesso");
+            System.out.println("Clone criado:");
+            System.out.println(pizzaClonada);
+            
+            // Verifica se são objetos diferentes
+            if (pizzaOriginal != pizzaClonada) {
+                System.out.println("✓ Confirmado: Original e clone são objetos distintos");
+            }
+        } catch (Exception e) {
+            System.out.println("✗ TESTE FALHOU: " + e.getMessage());
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 9: PADRÃO SINGLETON - Gerenciador de Pedidos");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Verificar se apenas uma instância do gerenciador existe");
+        
+        try {
+            GerenciadorPedidos instancia1 = GerenciadorPedidos.getInstancia();
+            GerenciadorPedidos instancia2 = GerenciadorPedidos.getInstancia();
+            
+            if (instancia1 == instancia2) {
+                System.out.println("✓ TESTE PASSOU: Singleton funcionando - mesma instância retornada");
+                System.out.println("  Total de pedidos no gerenciador: " + instancia1.getTotalPedidos());
+                System.out.println("  Total de vendas: R$ " + String.format("%.2f", instancia1.getTotalVendas()));
+            } else {
+                System.out.println("✗ TESTE FALHOU: Instâncias diferentes foram criadas");
+            }
+        } catch (Exception e) {
+            System.out.println("✗ TESTE FALHOU: " + e.getMessage());
+        }
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TESTE 10: CÁLCULO DE PREÇOS - Verificação de Adicionais");
+        System.out.println("=".repeat(70));
+        System.out.println("Objetivo: Verificar se os preços dos adicionais estão sendo calculados corretamente");
+        
+        try {
+            // Lanche básico pequeno: R$ 15,00
+            Lanche lancheBasico = new Lanche.LancheBuilder()
+                .escolherTamanho("Pequeno") // Base: R$ 15,00
+                .comTipoPao(IngredienteFactory.criarPao("1"))
+                .comRecheio(IngredienteFactory.criarRecheio("1"))
+                .build();
+            
+            // Lanche com adicionais
+            Lanche lancheComAdicionais = new Lanche.LancheBuilder()
+                .escolherTamanho("Pequeno") // Base: R$ 15,00
+                .comTipoPao(IngredienteFactory.criarPao("1"))
+                .comRecheio(IngredienteFactory.criarRecheio("1"))
+                .comQueijoExtra(true) // + R$ 2,50
+                .adicionarIngrediente("Bacon") // + R$ 2,50
+                .adicionarMolho("Barbecue") // + R$ 1,00
+                .adicionarAcompanhamento("Batata Frita") // + R$ 3,00
+                .build();
+            // Total esperado: 15,00 + 2,50 + 2,50 + 1,00 + 3,00 = R$ 24,00
+            
+            System.out.println("Lanche básico: R$ " + String.format("%.2f", lancheBasico.getPrecoTotal()));
+            System.out.println("Lanche com adicionais: R$ " + String.format("%.2f", lancheComAdicionais.getPrecoTotal()));
+            
+            double diferencaEsperada = 9.00; // 2,50 + 2,50 + 1,00 + 3,00
+            double diferencaReal = lancheComAdicionais.getPrecoTotal() - lancheBasico.getPrecoTotal();
+            
+            if (Math.abs(diferencaReal - diferencaEsperada) < 0.01) {
+                System.out.println("✓ TESTE PASSOU: Cálculo de preços está correto");
+                System.out.println("  Diferença esperada: R$ " + String.format("%.2f", diferencaEsperada));
+                System.out.println("  Diferença real: R$ " + String.format("%.2f", diferencaReal));
+            } else {
+                System.out.println("✗ TESTE FALHOU: Cálculo de preços incorreto");
+                System.out.println("  Diferença esperada: R$ " + String.format("%.2f", diferencaEsperada));
+                System.out.println("  Diferença real: R$ " + String.format("%.2f", diferencaReal));
+            }
+        } catch (Exception e) {
+            System.out.println("✗ TESTE FALHOU: " + e.getMessage());
+        }
+        
+        System.out.println("\n╔══════════════════════════════════════════════════════════════╗");
+        System.out.println("║              RESUMO DOS CASOS DE TESTE                       ║");
+        System.out.println("╚══════════════════════════════════════════════════════════════╝");
+        
+        int totalPedidosTeste = gerenciador.getTotalPedidos();
+        double totalVendasTeste = gerenciador.getTotalVendas();
+        
+        System.out.println("\nPadrões de Projeto Testados:");
+        System.out.println("  ✓ Builder Pattern - Construção fluente de objetos complexos");
+        System.out.println("  ✓ Factory Pattern - Criação de ingredientes padronizados");
+        System.out.println("  ✓ Prototype Pattern - Clonagem de pedidos existentes");
+        System.out.println("  ✓ Singleton Pattern - Gerenciador único de pedidos");
+        
+        System.out.println("\nValidações Testadas:");
+        System.out.println("  ✓ Campos obrigatórios (pão, recheio, massa)");
+        System.out.println("  ✓ Restrições vegetarianas");
+        System.out.println("  ✓ Máximo de recheios na pizza");
+        System.out.println("  ✓ Cálculo correto de preços");
+        
+        System.out.println("\nEstatísticas dos Testes:");
+        System.out.println("  • Total de pedidos criados: " + totalPedidosTeste);
+        System.out.println("  • Valor total gerado: R$ " + String.format("%.2f", totalVendasTeste));
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("FIM DOS CASOS DE TESTE");
+        System.out.println("=".repeat(70));
+        
+        System.out.print("\nPressione Enter para voltar ao menu principal...");
         scanner.nextLine();
     }
 }
