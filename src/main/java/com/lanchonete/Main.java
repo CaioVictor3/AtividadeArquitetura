@@ -36,6 +36,15 @@ public class Main {
                 continue;
             }
 
+            Lanche lanche = new Lanche.LancheBuilder()
+                .escolherTamanho("Grande")
+                .comTipoPao("Brioche")
+                .comRecheio("Frango")
+                .comQueijoExtra(true)
+                .adicionarMolho("Barbecue")
+                .build();
+
+
             switch (opcao) {
                 case 1 -> montarLanche();
                 case 2 -> montarPizza();
